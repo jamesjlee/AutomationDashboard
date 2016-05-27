@@ -1,0 +1,19 @@
+<div>
+  <div class="modal-header">
+      <h3 class="modal-title">Register Asset</h3>
+  </div>
+  <div class="modal-body">
+    <form name="myForm" sf-schema="schema" sf-form="form" sf-model="entity" ng-submit="onSubmit(myForm)">
+      <input type="submit" id="submit-form" class="hidden">
+    </form>
+  </div>
+  <div class="modal-footer">
+      <div id="registerAssetModalError" ng-show="error" class="alert alert-danger row" style="text-align: center;">
+        <i class="fa fa-exclamation-circle"></i>
+            <span>{{ error }}</span>
+        <i class="fa fa-times" ng-click="hideRegisterAssetModalError()" style="float: right"></i>
+      </div>
+      <label for="submit-form" class="btn btn-primary">Submit</label>
+      <button class="btn btn-primary" ng-click="$close()">Cancel</button>
+  </div>
+</div>
