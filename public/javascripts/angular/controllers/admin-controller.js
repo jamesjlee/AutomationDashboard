@@ -17,12 +17,7 @@ function($scope, $state, records, auth){
     }
   }
 
-  console.log($scope.users);
-  console.log($scope.admins);
-
   $scope.userToAdmin = function() {
-    // console.log($scope.selectedAdmin);
-    // console.log($scope.selectedUser);
     if(typeof $scope.selectedUser !== 'undefined') {
       for(var i=0;i<$scope.selectedUser.length;i++) {
         for(var j=0; j<$scope.users.length; j++) {

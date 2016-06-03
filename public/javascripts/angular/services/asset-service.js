@@ -94,7 +94,7 @@ function EditAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstanc
 		$uibModalInstance.dismiss('cancel');
 		$uibModal.open({
 	  		templateUrl: '/partials/delete-asset-modal.html',
-	  		controller: ['$scope', '$rootScope', 'AssetSchema', 'records', '$uibModal', '$uibModalInstance', 'editAssetGrid', 'editAssetRow', 'auth', DeleteAssetCtrl],
+	  		controller: ['$scope', '$rootScope', 'records', '$uibModalInstance', 'editAssetGrid', 'editAssetRow', 'auth', DeleteAssetCtrl],
 	  		resolve: {
 	  			editAssetGrid: function () { return $scope.grid; },
 				editAssetRow: function () { return $scope.row; }
@@ -103,7 +103,7 @@ function EditAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstanc
   		
 	}
 
-	function DeleteAssetCtrl($scope, $rootScope, AssetSchema, records, $uibModal, $uibModalInstance, editAssetGrid, editAssetRow, auth) {
+	function DeleteAssetCtrl($scope, $rootScope, AssetSchema, records, $uibModalInstance, editAssetGrid, editAssetRow, auth) {
 
 		$scope.deleteAllAssetRecords = function() {
 			var rows = editAssetGrid.rows;

@@ -2,10 +2,9 @@ angular.module('automationDashboard').service('RowEditor', [
 	'$rootScope',
 	'$uibModal',
 	'records',
-	'MetricsSchema',
 	'auth',
 	'$http',
-	function RowEditor($rootScope, $uibModal, records, MetricsSchema, auth, $http) {
+	function RowEditor($rootScope, $uibModal, records, auth, $http) {
 	  var service = {};
 	  service.editRow = editRow;
 	  service.addRow = addRow;
@@ -16,7 +15,7 @@ angular.module('automationDashboard').service('RowEditor', [
 	  function addRow() {
 	    $uibModal.open({
 	      templateUrl: '/partials/add-modal.html',
-	      controller: ['$scope', 'MetricsSchema', 'records', '$uibModalInstance', 'auth', RowAddCtrl]
+	      controller: ['$scope', 'records', '$uibModalInstance', 'auth', RowAddCtrl]
 	    });
 	  }
 	  
@@ -29,7 +28,7 @@ angular.module('automationDashboard').service('RowEditor', [
 	  			if(userHasPermission || isAdmin) {
 					$uibModal.open({
 					  templateUrl: '/partials/edit-row-modal.html',
-					  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'grid', 'row', RowEditCtrl],
+					  controller: ['$scope', '$uibModalInstance', 'records', 'grid', 'row', RowEditCtrl],
 					  resolve: {
 					    grid: function () { return grid; },
 					    row: function () { return row; }
@@ -73,13 +72,13 @@ angular.module('automationDashboard').service('RowEditor', [
 		  		if(userHasPermission || isAdmin) {
 					$uibModal.open({
 					  templateUrl: '/partials/grant-user-permission-modal.html',
-					  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'getUserNames', 'grid', 'row', 'auth', GrantUserPermissionCtrl],
+					  controller: ['$scope', '$uibModalInstance', 'records', 'getUserNames', 'auth', 'grid', 'row', GrantUserPermissionCtrl],
 					  resolve: {
 					  	getUserNames:  ['auth', function(auth){
 							return auth.getUserNames();
 						}],
 						grid: function () { return grid; },
-					    row: function () { return row; }
+					    row: function () { return row; },
 					  }
 					});
 					$rootScope.homeError = '';
@@ -130,7 +129,7 @@ function RowDeleteCtrl($scope, $uibModalInstance, records, grid, row) {
 	}
 }
 
-function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, records, getUserNames, grid, row, auth) {
+function GrantUserPermissionCtrl($scope, $uibModalInstance, records, getUserNames, auth, grid, row) {
 	$scope.onSubmit = onSubmit;
 	function getUsers() {
 		var users = [];
@@ -168,7 +167,6 @@ function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, recor
 	];
 
 	function onSubmit(form) {
-		console.log('in here');
 	  	$scope.$broadcast('schemaFormValidate');
 
 		if (form.$valid) {
@@ -178,7 +176,7 @@ function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, recor
 	}
 }
 
-function RowEditCtrl($scope, MetricsSchema, $uibModalInstance, records, grid, row) {
+function RowEditCtrl($scope, $uibModalInstance, records, grid, row) {
   $scope.onSubmit = onSubmit;
   function getAssetNames() {
   	var assetNames = [];
@@ -278,7 +276,7 @@ function RowEditCtrl($scope, MetricsSchema, $uibModalInstance, records, grid, ro
   }
 }
 
-function RowAddCtrl($scope, MetricsSchema, records, $uibModalInstance, auth) {
+function RowAddCtrl($scope, records, $uibModalInstance, auth) {
 	$scope.currentUser = auth.currentUser();
 	// console.log($scope.currentUser);
 	$scope.onSubmit = onSubmit;
