@@ -235,13 +235,11 @@ function RowEditCtrl($scope, $uibModalInstance, records, grid, row) {
 		"key": "startDate",
 		"minDate": "1995-09-01",
 		"maxDate": new Date(),
-		"format": "yyyy-mm-dd"
 	},
 	{
 		"key": "endDate",
 		"minDate": "1995-09-01",
 		"maxDate": new Date(),
-		"format": "yyyy-mm-dd"
 	},
 	'newTestsAutomated',
 	'manualExecutionTimeNewTests',
@@ -269,6 +267,8 @@ function RowEditCtrl($scope, $uibModalInstance, records, grid, row) {
 		$scope.entity.cycleTimeSavingsNewTests = $scope.entity.manualExecutionTimeNewTests - $scope.entity.automatedExecutionTimeNewTests;
 		$scope.entity.cycleTimeSavingsMaintainedTests = $scope.entity.manualExecutionTimeMaintainedTests - $scope.entity.automatedExecutionTimeMaintainedTests;
 		$scope.entity.cycleTimeSavingsExecutedTests = $scope.entity.manualExecutionTimeExecutedTests - $scope.entity.automatedExecutionTimeExecutedTests;
+		console.log($scope.entity);
+		// $scope.entity.startDate
 		records.updateRecord($scope.entity);
 	    row.entity = $scope.entity;
 	    $uibModalInstance.dismiss('cancel');
@@ -338,13 +338,11 @@ function RowAddCtrl($scope, records, $uibModalInstance, auth) {
 			"key": "startDate",
 			"minDate": "1995-09-01",
 			"maxDate": new Date(),
-			"format": "yyyy-mm-dd"
 		},
 		{
 			"key": "endDate",
 			"minDate": "1995-09-01",
 			"maxDate": new Date(),
-			"format": "yyyy-mm-dd"
   		},
 		'newTestsAutomated',
 		'manualExecutionTimeNewTests',

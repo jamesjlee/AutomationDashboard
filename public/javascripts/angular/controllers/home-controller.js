@@ -9,7 +9,8 @@ angular.module('automationDashboard').controller('HomeCtrl', [
 	'$uibModal',
 	'$rootScope',
 	'auth',
-	function($scope, records, RowEditor, AssetService, $state, $http, $timeout, $uibModal, $rootScope, auth) {
+	'moment',
+	function($scope, records, RowEditor, AssetService, $state, $http, $timeout, $uibModal, $rootScope, auth, moment) {
 		$scope.isLoggedIn = auth.isLoggedIn;
 		$scope.editRow = RowEditor.editRow;
 		$scope.addRow = RowEditor.addRow;
@@ -54,8 +55,8 @@ angular.module('automationDashboard').controller('HomeCtrl', [
 			{field: 'project', name: 'Project', cellTemplate: '/partials/project.html', enableCellEdit: false, pinnedLeft: true, width: 100},
 			{field: 'releaseName', name: 'Release Name', pinnedLeft: true, width: 100, cellEditableCondition: function(){return $scope.isLoggedIn()}},
 			{field: 'type', name: 'Type', width: 110,  enableCellEdit: false},
-			{field: 'startDate', name: 'Reporting Start Date', cellFilter: 'date:\'MM-dd-yyyy\'', width: 110, enableCellEdit: false},
-			{field: 'endDate', name: 'Reporting End Date', cellFilter: 'date:\'MM-dd-yyyy\'', width: 110, enableCellEdit: false},
+			{field: 'startDate', name: 'Reporting Start Date', cellFilter: 'formatDateTime', width: 110, enableCellEdit: false},
+			{field: 'endDate', name: 'Reporting End Date', cellFilter: 'formatDateTime', width: 110, enableCellEdit: false},
 			{field: 'newTestsAutomated', name: 'New Tests Automated', width: 150, cellEditableCondition: function(){return $scope.isLoggedIn()}},
 			{field: 'manualExecutionTimeNewTests', name:'Manual Execution Time (New Tests)', width: 150, cellEditableCondition: function(){return $scope.isLoggedIn()}},
 			{field: 'automatedExecutionTimeNewTests', name: 'Automated Execution Time (New Tests)', width: 150, cellEditableCondition: function(){return $scope.isLoggedIn()}},
@@ -83,3 +84,12 @@ angular.module('automationDashboard').controller('HomeCtrl', [
 		$scope.gridOptions.data = records.records;
 	}
 ]);
+
+angular.module('automationDashboard').filter('formatDateTime', function () {
+  return function (value) {
+  	if(value) {
+  		var v = moment(value).utc().format('MM/DD/YYYY');
+  		return v;
+  	}
+  };
+});
