@@ -1,4 +1,4 @@
-var app = angular.module('automationDashboard', ['ui.router', 'ui.bootstrap', 'ui.grid', 'ui.grid.resizeColumns','ui.grid.pagination', 'ui.grid.pinning', 'ui.grid.moveColumns', 'ui.grid.edit', 'schemaForm', 'mgcrea.ngStrap', 'ngSanitize', 'angularMoment']);
+var app = angular.module('automationDashboard', ['ui.router', 'ui.bootstrap', 'ui.grid', 'ui.grid.resizeColumns','ui.grid.pagination', 'ui.grid.pinning', 'ui.grid.moveColumns', 'ui.grid.edit', 'schemaForm', 'mgcrea.ngStrap', 'ngSanitize']);
 
 app.run(function($rootScope){
 	$rootScope

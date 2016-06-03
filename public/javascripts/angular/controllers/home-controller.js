@@ -9,8 +9,7 @@ angular.module('automationDashboard').controller('HomeCtrl', [
 	'$uibModal',
 	'$rootScope',
 	'auth',
-	'moment',
-	function($scope, records, RowEditor, AssetService, $state, $http, $timeout, $uibModal, $rootScope, auth, moment) {
+	function($scope, records, RowEditor, AssetService, $state, $http, $timeout, $uibModal, $rootScope, auth) {
 		$scope.isLoggedIn = auth.isLoggedIn;
 		$scope.editRow = RowEditor.editRow;
 		$scope.addRow = RowEditor.addRow;
