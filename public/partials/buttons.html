@@ -9,4 +9,8 @@
   <button type="button" class="btn btn-xs btn-primary" ng-disabled="!grid.appScope.isLoggedIn()" ng-click="grid.appScope.grantUserPermission(grid, row); grid.appScope.showHomeError()">
     <i class="fa fa-users"></i>
   </button>
+
+  <button type="button" class="btn btn-xs btn-primary" ng-disabled="!grid.appScope.isLoggedIn()" ng-click="grid.appScope.duplicateRow(grid, row); grid.appScope.showHomeError()">
+    <i class="fa fa-clone"></i>
+  </button>
 </div>

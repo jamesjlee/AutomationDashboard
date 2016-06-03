@@ -11,25 +11,7 @@ angular.module('automationDashboard').service('RowEditor', [
 	  service.addRow = addRow;
 	  service.deleteRow = deleteRow;
 	  service.grantUserPermission = grantUserPermission;
-	  
-	  function editRow(grid, row) {
-	  	var entity = angular.copy(row.entity);
-	  	$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
-	  		if(userHasPermission) {
-				$uibModal.open({
-				  templateUrl: '/partials/edit-row-modal.html',
-				  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'grid', 'row', RowEditCtrl],
-				  resolve: {
-				    grid: function () { return grid; },
-				    row: function () { return row; }
-				  }
-				});
-				$rootScope.homeError = '';
-	  		} else {
-	  			$rootScope.homeError = 'You do not have permission to edit this record!';
-	  		}
-		});	
-	  }
+	  service.duplicateRow = duplicateRow;
 
 	  function addRow() {
 	    $uibModal.open({
@@ -37,51 +19,127 @@ angular.module('automationDashboard').service('RowEditor', [
 	      controller: ['$scope', 'MetricsSchema', 'records', '$uibModalInstance', 'auth', RowAddCtrl]
 	    });
 	  }
+	  
+	  function editRow(grid, row) {
+	  	console.log(row);
+	  	var entity = angular.copy(row.entity);
+	  	$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
+	  		auth.isAdmin().then(function(result){
+	  			var isAdmin = result.data[0].isAdmin;
+	  			if(userHasPermission || isAdmin) {
+					$uibModal.open({
+					  templateUrl: '/partials/edit-row-modal.html',
+					  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'grid', 'row', RowEditCtrl],
+					  resolve: {
+					    grid: function () { return grid; },
+					    row: function () { return row; }
+					  }
+					});
+					$rootScope.homeError = '';
+		  		} else {
+		  			$rootScope.homeError = 'You do not have permission to edit this record!';
+		  		}
+	  		});
+		});	
+	  }
 
 	  function deleteRow(grid, row) {
 	  	var entity = angular.copy(row.entity);
 	  	$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
-	  		if(userHasPermission) {
-				records.deleteRecord(entity);
-				$rootScope.homeError = '';
-	  		} else {
-	  			$rootScope.homeError = 'You do not have permission to delete this record!';
-	  		}
+	  		auth.isAdmin().then(function(result){
+	  			var isAdmin = result.data[0].isAdmin;
+		  		if(userHasPermission || isAdmin) {
+		  			$uibModal.open({
+					  templateUrl: '/partials/delete-row-modal.html',
+					  controller: ['$scope', '$uibModalInstance', 'records', 'grid', 'row', RowDeleteCtrl],
+					  resolve: {
+					    grid: function () { return grid; },
+					    row: function () { return row; }
+					  }
+					});
+					$rootScope.homeError = '';
+		  		} else {
+		  			$rootScope.homeError = 'You do not have permission to delete this record!';
+		  		}
+	  		});
 		});	
 	  }
 
 	  function grantUserPermission(grid, row) {
 	  	var entity = angular.copy(row.entity);
 		$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
-	  		if(userHasPermission) {
-				$uibModal.open({
-				  templateUrl: '/partials/grant-user-permission-modal.html',
-				  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'getUserNames', 'grid', 'row', GrantUserPermissionCtrl],
-				  resolve: {
-				  	getUserNames:  ['auth', function(auth){
-						return auth.getUserNames();
-					}],
-					grid: function () { return grid; },
-				    row: function () { return row; }
-				  }
-				});
-				$rootScope.homeError = '';
-	  		} else {
-	  			$rootScope.homeError = 'You do not have permission to give users access for this record!';
-	  		}
+			auth.isAdmin().then(function(result){
+	  			var isAdmin = result.data[0].isAdmin;
+		  		if(userHasPermission || isAdmin) {
+					$uibModal.open({
+					  templateUrl: '/partials/grant-user-permission-modal.html',
+					  controller: ['$scope', 'MetricsSchema', '$uibModalInstance', 'records', 'getUserNames', 'grid', 'row', 'auth', GrantUserPermissionCtrl],
+					  resolve: {
+					  	getUserNames:  ['auth', function(auth){
+							return auth.getUserNames();
+						}],
+						grid: function () { return grid; },
+					    row: function () { return row; }
+					  }
+					});
+					$rootScope.homeError = '';
+		  		} else {
+		  			$rootScope.homeError = 'You do not have permission to give users access for this record!';
+		  		}
+	  		});
+		});	
+	  }
+
+	  function duplicateRow(grid, row) {
+	  	var entity = angular.copy(row.entity);
+		$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
+			auth.isAdmin().then(function(result){
+	  			var isAdmin = result.data[0].isAdmin;
+		  		if(userHasPermission || isAdmin) {
+					$uibModal.open({
+					  templateUrl: '/partials/duplicate-row-modal.html',
+					  controller: ['$scope', '$uibModalInstance', 'records', 'grid', 'row', DuplicateRowCtrl],
+					  resolve: {
+						grid: function () { return grid; },
+					    row: function () { return row; }
+					  }
+					});
+					$rootScope.homeError = '';
+		  		} else {
+		  			$rootScope.homeError = 'You do not have permission to duplicate this record!';
+		  		}
+	  		});
 		});	
 	  }
 	  return service;
 	}
 ]);
 
-function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, records, getUserNames, grid, row) {
+function DuplicateRowCtrl($scope, $uibModalInstance, records, grid, row) {
+	$scope.duplicateRow = function() {
+		records.duplicateRecord(row.entity);
+		$uibModalInstance.dismiss('cancel');
+	}
+}
+
+
+function RowDeleteCtrl($scope, $uibModalInstance, records, grid, row) {
+	$scope.deleteRow = function() {
+		records.deleteRecord(row.entity);
+		$uibModalInstance.dismiss('cancel');
+	}
+}
+
+function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, records, getUserNames, grid, row, auth) {
 	$scope.onSubmit = onSubmit;
 	function getUsers() {
 		var users = [];
 		for(var i=0;i<getUserNames.data.length;i++){
-			users.push(getUserNames.data[i].username);
-		}	
+			console.log(getUserNames.data[i]);
+			if(!getUserNames.data[i].isAdmin && getUserNames.data[i].username !== auth.currentUser()) {
+				users.push(getUserNames.data[i].username);
+			}
+		}
 		return users;
 	}
 
@@ -114,14 +172,7 @@ function GrantUserPermissionCtrl($scope, MetricsSchema, $uibModalInstance, recor
 	  	$scope.$broadcast('schemaFormValidate');
 
 		if (form.$valid) {
-			console.log($scope.entity);
-			console.log(row.entity);
 			records.updateUsers($scope.entity, row.entity);
-			// records.updateRecord($scope.entity);
-		    // console.log($scope.entity);
-		    // row.entity = angular.extend(row.entity, $scope.entity);
-		    // row.entity = $scope.entity;
-
 		    $uibModalInstance.dismiss('cancel');
 		}
 	}
@@ -217,9 +268,10 @@ function RowEditCtrl($scope, MetricsSchema, $uibModalInstance, records, grid, ro
   	$scope.$broadcast('schemaFormValidate');
 
 	if (form.$valid) {
+		$scope.entity.cycleTimeSavingsNewTests = $scope.entity.manualExecutionTimeNewTests - $scope.entity.automatedExecutionTimeNewTests;
+		$scope.entity.cycleTimeSavingsMaintainedTests = $scope.entity.manualExecutionTimeMaintainedTests - $scope.entity.automatedExecutionTimeMaintainedTests;
+		$scope.entity.cycleTimeSavingsExecutedTests = $scope.entity.manualExecutionTimeExecutedTests - $scope.entity.automatedExecutionTimeExecutedTests;
 		records.updateRecord($scope.entity);
-	    // console.log($scope.entity);
-	    // row.entity = angular.extend(row.entity, $scope.entity);
 	    row.entity = $scope.entity;
 	    $uibModalInstance.dismiss('cancel');
 	}

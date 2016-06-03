@@ -1,4 +1,4 @@
-angular.module('automationDashboard').factory('auth', ['$http', '$window', function($http, $window){
+angular.module('automationDashboard').factory('auth', ['$http', '$window', '$state', function($http, $window, $state){
    var auth = {};
 
    auth.saveToken = function (token){
@@ -44,13 +44,25 @@ angular.module('automationDashboard').factory('auth', ['$http', '$window', funct
 
 	auth.logOut = function(){
 	  $window.localStorage.removeItem('test-automation-token');
+	  $state.go('home');
 	};
 
 	auth.getUserNames = function(){
-		return $http.get('/getUserNames').success(function(data){
+		return $http.get('/users').success(function(data){
 			console.log(data);
 	  	});
 	};
+
+	auth.isAdmin = function() {
+		if(auth.isLoggedIn()){
+		    var token = auth.getToken();
+		    var payload = JSON.parse($window.atob(token.split('.')[1]));
+
+		    return $http.get('/users-findByUsername?username='+payload.username).success(function(data){
+				console.log(data);
+			});
+		}
+	}
 
   return auth;
 }]);

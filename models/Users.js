@@ -6,7 +6,8 @@ var config = require('./../bin/config');
 var UserSchema = new mongoose.Schema({
   username: {type: String, lowercase: true, unique: true},
   hash: String,
-  salt: String
+  salt: String,
+  isAdmin: {type: Boolean, default: false},
 });
 
 

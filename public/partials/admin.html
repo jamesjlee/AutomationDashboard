@@ -1,0 +1,99 @@
+<script>
+	function one2two() {
+	$('#')
+    m1len = m1.length ;
+    for ( i=0; i<m1len ; i++){
+        if (m1.options[i].selected == true ) {
+            m2len = m2.length;
+            m2.options[m2len]= new Option(m1.options[i].text);
+        }
+    }
+
+    for ( i = (m1len -1); i>=0; i--){
+        if (m1.options[i].selected == true ) {
+            m1.options[i] = null;
+        }
+    }
+  }
+
+  function two2one() {
+      m2len = m2.length ;
+          for ( i=0; i<m2len ; i++){
+              if (m2.options[i].selected == true ) {
+                  m1len = m1.length;
+                  m1.options[m1len]= new Option(m2.options[i].text);
+              }
+          }
+          for ( i=(m2len-1); i>=0; i--) {
+              if (m2.options[i].selected == true ) {
+                  m2.options[i] = null;
+              }
+          }
+  }
+</script>
+<div class="nav_menu" style="position: fixed; z-index: 3;">
+	<nav class="" role="navigation">
+		<div class="nav toggle">
+			<a id="menu_toggle" href="#"><i class="fa fa-home" style="color: #fff"></i></a>
+		</div>
+		<div class="nav toggle page-top-title">
+			<span><b>Automation Dashboard</b></span>
+		</div>
+
+		<span style="float: right; margin-top: 15px; margin-bottom: 15px; margin-right: 25px" ng-controller="NavCtrl">
+			<span ng-show="isLoggedIn()"><a style="font-size: 15px; color: white; margin-right: 15px">Welcome, {{ currentUser() }}</a></span>
+			<button ng-show="isLoggedIn()" class="btn btn-md btn-primary" ng-click="logOut()">
+				<i class="fa fa-sign-out"> Log Out</i>
+			</button>
+			<button ng-hide="isLoggedIn()" class="btn btn-md btn-primary" ng-click="go('/login')">
+				<i class="fa fa-sign-in"> Log In</i>
+			</button>
+			<button ng-hide="isLoggedIn()" class="btn btn-md btn-primary" ng-click="go('/register')">
+			<i class="fa fa-user-plus"> Register</i>
+			</button>
+		</span>
+	</nav>
+</div>
+
+<div class="right_col" role="main">
+	<div id="main_table" class="row">
+		<div class="col-md-12 col-sm-12 col-xs-12">
+			<div class="col-md-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h3><span style="font-size: 18px;">Admin</span>
+					</div>
+					<form  method="POST" name="theForm">
+					<table bgcolor="white" border="1" cellpadding="5" cellspacing="2" align="center">
+					<tr>
+						<td align="center">
+							(Contributer) Users
+						</td>
+						<td align="center">
+							Admins
+						</td>
+					</tr>
+					<tr><td align="center">
+					    <select id="userList" ng-model="selectedUser" style="width:500px; overflow-y:auto;" size=10 multiple>
+					       <option ng-repeat="user in users">{{user.username}}</option>
+					    </select><br />
+					    <p align="center"><input type="button" class="btn btn-primary" ng-click="userToAdmin()" value=" >> "></p>
+					</td>
+						<td align="center">
+					    <select id="adminList" ng-model="selectedAdmin" style="width:500px; overflow-y:auto;" size=10 multiple >
+					    <option ng-repeat="admin in admins">{{admin.username}}</option>
+					    </select><br />
+					    <p align="center"><input type="button" class="btn btn-primary" ng-click="adminToUser()" value=" << " ></p>
+
+					</td></tr></table>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script>
+
+</script>

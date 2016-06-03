@@ -20,22 +20,25 @@ angular.module('automationDashboard').service('AssetService', [
 	  function editAsset(grid, row) {
 	  	var entity = angular.copy(row.entity);
 	  	$http.get('/userHasPermission?user='+auth.currentUser()+'&rowId='+entity._id).success(function(userHasPermission){
-	  		if(userHasPermission) {
-			  	$uibModal.open({
-			  		templateUrl: '/partials/edit-asset-modal.html',
-			  		controller: ['$scope', 'AssetSchema', 'records', '$uibModal', '$uibModalInstance', 'getAssetInfo', 'grid', 'row',EditAssetCtrl],
-			  		resolve: {
-			  			getAssetInfo:  ['records', function(records){
-							return records.getAssetInfo(entity);
-						}],
-						grid: function () { return grid; },
-			       		row: function () { return row; }
-			  		}
-			  	});
-			  	$rootScope.homeError = '';
-	  		} else {
-				$rootScope.homeError = 'You do not have permission to edit this asset!';	  			
-	  		}
+	  		auth.isAdmin().then(function(result){
+	  			var isAdmin = result.data[0].isAdmin;
+	  			if(userHasPermission || isAdmin) {
+				  	$uibModal.open({
+				  		templateUrl: '/partials/edit-asset-modal.html',
+				  		controller: ['$scope', 'AssetSchema', 'records', '$uibModal', '$uibModalInstance', 'getAssetInfo', 'grid', 'row', EditAssetCtrl],
+				  		resolve: {
+				  			getAssetInfo:  ['records', function(records){
+								return records.getAssetInfo(entity);
+							}],
+							grid: function () { return grid; },
+				       		row: function () { return row; }
+				  		}
+				  	});
+				  	$rootScope.homeError = '';
+		  		} else {
+					$rootScope.homeError = 'You do not have permission to edit this asset!';	  			
+		  		}
+	  		});
 	  	});
 	  }
 
@@ -91,52 +94,52 @@ function EditAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstanc
 		$uibModalInstance.dismiss('cancel');
 		$uibModal.open({
 	  		templateUrl: '/partials/delete-asset-modal.html',
-	  		// scope: $scope,
-	  		controller: ['$scope', 'AssetSchema', 'records', '$uibModal', '$uibModalInstance', 'editAssetGrid', 'editAssetRow', DeleteAssetCtrl],
-	  		// controller: 'DeleteAssetCtrl',
+	  		controller: ['$scope', '$rootScope', 'AssetSchema', 'records', '$uibModal', '$uibModalInstance', 'editAssetGrid', 'editAssetRow', 'auth', DeleteAssetCtrl],
 	  		resolve: {
-	  			// console.log($scope.grid);
 	  			editAssetGrid: function () { return $scope.grid; },
 				editAssetRow: function () { return $scope.row; }
 	  		}
 	  	});
   		
 	}
-	// $scope.deleteAllAssetRecords = function($scope, AssetSchema, records, $uibModal, $uibModalInstance, grid, row) {
-	// 	console.log('in here');
-	// 	console.log(row);
-	// }
 
-	function DeleteAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstance, editAssetGrid, editAssetRow) {
+	function DeleteAssetCtrl($scope, $rootScope, AssetSchema, records, $uibModal, $uibModalInstance, editAssetGrid, editAssetRow, auth) {
 
 		$scope.deleteAllAssetRecords = function() {
 			var rows = editAssetGrid.rows;
-
-			records.deleteAsset(editAssetRow.entity.project).then(function(result){
-				for(var i=0;i<rows.length;i++) {
-					if(rows[i].entity.project === editAssetRow.entity.project) {
-						var rowId = rows[i].entity._id;
-						records.deleteAssetRecord(rowId);
-					}
+			auth.isAdmin().then(function(result){
+				var isAdmin = result.data[0].isAdmin;
+				if(isAdmin) {
+					records.deleteAsset(editAssetRow.entity).then(function(result){
+						for(var i=0;i<rows.length;i++) {
+							if(rows[i].entity.project === editAssetRow.entity.project) {
+								var rowId = rows[i].entity._id;
+								records.deleteRecord(rows[i].entity);
+							}
+						}
+					});
+					$rootScope.homeError = '';
+				} else {
+					$rootScope.homeError = 'You must have admin access to delete this asset!';
 				}
 			});
+			
 			$uibModalInstance.dismiss('cancel');
 		}
 	}
 
 	$scope.schema = AssetSchema;
 	$scope.entity = {
-		_id: getAssetInfo.data[0]._id,
-		assetName: getAssetInfo.data[0].assetName,
-		assetId: getAssetInfo.data[0].assetId,
-		assetPoc:  getAssetInfo.data[0].assetPoc,
-		assetSoc: getAssetInfo.data[0].assetSoc,
-		assetStatus: getAssetInfo.data[0].assetStatus
+		_id: getAssetInfo.data._id,
+		assetName: getAssetInfo.data.assetName,
+		assetId: getAssetInfo.data.assetId,
+		assetPoc:  getAssetInfo.data.assetPoc,
+		assetSoc: getAssetInfo.data.assetSoc,
+		assetStatus: getAssetInfo.data.assetStatus
 	}
 	$scope.form = [
 		{
 			'key': 'assetName',
-			'readonly':true,
 		},
 		'assetId',
 		'assetPoc',
@@ -145,29 +148,29 @@ function EditAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstanc
 			'key': 'assetStatus',
 			'validationMessage': 'Required',
 		}
-		];
+	];
 
 		$scope.onSubmit = onSubmit;
 
 		function onSubmit(form) {
 			$scope.$broadcast('schemaFormValidate');
 
-		if (form.$valid) {
-			records.updateAsset($scope.entity).then(function(result){
-				$uibModalInstance.dismiss('cancel');
-				// console.log(result);
-				// if(result.data !== 'Asset already exists!') {
-				// 	for(var i=0;i<grid.rows.length;i++) {
-				// 		if(grid.rows[i].entity.project == oldName) {
-				// 			grid.rows[i].entity.project = $scope.entity.assetName;;
-				// 		}
-				// 	}
-				// 	$uibModalInstance.dismiss('cancel');
-				// } else {
-				// 	$('#editAssetModalError').show();
-				// 	$scope.error = 'Asset already exists! Please choose another asset name.'
-				// }
-			});
+			if (form.$valid) {
+				records.updateAsset($scope.entity).then(function(result){
+					console.log(result.data.message);
+					// console.log(result);
+					if(result.data.message !== 'Asset already exists!') {
+						for(var i=0;i<grid.rows.length;i++) {
+							if(grid.rows[i].entity.project == oldName) {
+								grid.rows[i].entity.project = $scope.entity.assetName;;
+							}
+						}
+						$uibModalInstance.dismiss('cancel');
+					} else {
+						$('#editAssetModalError').show();
+						$scope.error = 'Asset already exists! Please choose another asset name.'
+					}
+				});
+			}
 		}
-	}
 }

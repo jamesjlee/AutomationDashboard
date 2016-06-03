@@ -6,6 +6,7 @@ angular.module('automationDashboard').factory('records', [
 		var o = {
 			records: [],
 			assets: [],
+			users: [],
 		};
 
 		o.getRecords = function() {
@@ -16,6 +17,40 @@ angular.module('automationDashboard').factory('records', [
 			});
 		};
 
+		o.addRecord = function(data) {
+			console.log(data);
+			return $http.post('/records', data, {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(data){
+				o.records.unshift(data);
+			});
+		}
+
+		o.updateRecord = function(data) {
+			console.log(data);
+			return $http.put('/records/' + data._id, data, {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(data){
+				console.log(data.message);
+			});
+		}
+
+		o.deleteRecord = function(data) {
+			var index = -1;
+			for(var i=0;i<o.records.length;i++) {
+				if(o.records[i]._id === data._id) {
+					index = i;
+					break;
+				}
+			}
+			o.records.splice(index, 1);
+			return $http.delete('/records/' + data._id, {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(data){
+				console.log(data.message);
+			});
+		}
+
 		o.getAssets = function() {
 			return $http.get('/assets').success(function(data){
 				// console.log(data);
@@ -24,43 +59,18 @@ angular.module('automationDashboard').factory('records', [
 			});
 		};
 
-		o.updateRecord = function(data) {
-			return $http.post('/updateRecord', data, {
-				headers: {Authorization: 'Bearer '+auth.getToken()}
-			}).success(function(data){
-				// console.log(data);
-			});
-		}
-
-		o.addRecord = function(data) {
-			console.log(data);
-			return $http.post('/addRecord', data, {
+		o.duplicateRecord = function(data) {
+			// console.log(data);
+			return $http.post('/records', data, {
 				headers: {Authorization: 'Bearer '+auth.getToken()}
 			}).success(function(data){
 				o.records.unshift(data);
-				// console.log(data);
-			});
-		}
-
-		o.deleteRecord = function(data) {
-			return $http.post('/deleteRecord', data, {
-				headers: {Authorization: 'Bearer '+auth.getToken()}
-			}).success(function(data){
-				console.log(data._id);
-				var index = -1;
-				for(var i=0;i<o.records.length;i++) {
-					if(o.records[i]._id === data._id) {
-						index = i;
-						break;
-					}
-				}
-				o.records.splice(index, 1);
 			});
 		}
 
 		o.registerAsset = function(data) {
 			console.log(data);
-			return $http.post('/registerAsset', data, {
+			return $http.post('/assets', data, {
 				headers: {Authorization: 'Bearer '+auth.getToken()}
 			}).success(function(data){
 				console.log(data);
@@ -72,9 +82,15 @@ angular.module('automationDashboard').factory('records', [
 		}
 
 		o.getAssetInfo = function(data) {
-			return $http.post('/getAssetInfo', data, {
-				headers: {Authorization: 'Bearer '+auth.getToken()}
-			}).success(function(data){
+			// console.log(data._id);
+			var _id;
+			for(var i=0; i<o.assets.length;i++) {
+				if(o.assets[i].assetName === data.project) {
+					console.log(o.assets[i]);
+					_id = o.assets[i]._id;
+				}
+			}
+			return $http.get('/assets/' + _id).success(function(data){
 				console.log(data);
 			});
 		}
@@ -83,13 +99,13 @@ angular.module('automationDashboard').factory('records', [
 			console.log(data);
 			// var updateAssetName;
 
-			return $http.post('/updateAsset', data, {
+			return $http.put('/assets/' + data._id, data, {
 				headers: {Authorization: 'Bearer '+auth.getToken()}
-			}).success(function(data2){
+			}).success(function(res){
 				// console.log(data);
-				if(data2 === 'Asset already exists!') {
+				if(res.message === 'Asset already exists!') {
 				} else {
-					updateAssetName = true;
+					// updateAssetName = true;
 					var oldName;
 					var newName;
 					for(var i=0;i<o.assets.length;i++) {
@@ -105,28 +121,39 @@ angular.module('automationDashboard').factory('records', [
 						}
 					}
 
-					$http.post('/updateRecordName?oldName='+oldName+'&newName='+newName).success(function(data){
+					$http.put('/updateRecordName?oldName='+oldName+'&newName='+newName, "", {
+						headers: {Authorization: 'Bearer '+auth.getToken()}
+					}).success(function(data){
 						console.log(data)
 					});
 				}
 			});
 		}
 
-		o.deleteAsset = function(assetName) {
-			return $http.post('/deleteAsset?assetName='+assetName).success(function(assetName){
-				var index = -1;
-				for(var i=0;i<o.assets.length;i++) {
-					if(o.assets[i].assetName === assetName) {
-						index = i;
-						break;
-					}
+		o.deleteAsset = function(data) {
+			var _id;
+			var index = -1;
+
+			for(var i=0; i<o.assets.length;i++) {
+				if(o.assets[i].assetName === data.project) {
+					_id = o.assets[i]._id;
+					index = i;
+					break;
 				}
-				o.assets.splice(index, 1);
+			}
+			console.log(index);
+			o.assets.splice(index, 1);
+			return $http.delete('/assets/' + _id, {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(data){
+				console.log(data);
 			});
 		}
 
 		o.deleteAssetRecord = function(rowId) {
-			return $http.post('/deleteAssetRecord?rowId='+rowId).success(function(rowId){
+			return $http.post('/deleteAssetRecord?rowId='+rowId, "", {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(rowId){
 				var index = -1;
 				for(var i=0;i<o.records.length;i++) {
 					if(o.records[i]._id === rowId) {
@@ -139,17 +166,38 @@ angular.module('automationDashboard').factory('records', [
 		}
 
 		o.getUsers = function(data) {
-			return $http.get('/getUsers', {
+			return $http.get('/users', {
 				headers: {Authorization: 'Bearer '+auth.getToken()}
 			}).success(function(data){
-				console.log(data);
+				// console.log(data);
+				angular.copy(data, o.users);
+				console.log(o.users);
 			});
 		}
 
 		o.updateUsers = function(userNameToAdd, row) {
 			var userNameToAdd = userNameToAdd.users;
 			var rowId = row._id;
-			return $http.post('/updateUsers?userNameToAdd='+userNameToAdd+"&rowId="+rowId, {
+
+
+			// return $http.put('/records/' + row._id, data, {
+			// 	headers: {Authorization: 'Bearer '+auth.getToken()}
+			// }).success(function(data){
+			// 	console.log(data.message);
+			// });
+
+			return $http.put('/updateUsers?userNameToAdd='+userNameToAdd+"&rowId="+rowId, "", {
+				headers: {Authorization: 'Bearer '+auth.getToken()}
+			}).success(function(data){
+				console.log(data);
+			});
+		}
+
+		o.changeAccess = function(user) {
+			var user = user;
+			user.isAdmin = !user.isAdmin;
+			console.log(user);
+			return $http.put('/users/' + user._id, user, {
 				headers: {Authorization: 'Bearer '+auth.getToken()}
 			}).success(function(data){
 				console.log(data);

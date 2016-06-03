@@ -1,4 +1,4 @@
-var app = angular.module('automationDashboard', ['ui.router', 'ui.bootstrap', 'ui.grid', 'ui.grid.resizeColumns','ui.grid.pagination', 'ui.grid.pinning', 'ui.grid.moveColumns', 'schemaForm', 'mgcrea.ngStrap', 'ngSanitize']);
+var app = angular.module('automationDashboard', ['ui.router', 'ui.bootstrap', 'ui.grid', 'ui.grid.resizeColumns','ui.grid.pagination', 'ui.grid.pinning', 'ui.grid.moveColumns', 'ui.grid.edit', 'schemaForm', 'mgcrea.ngStrap', 'ngSanitize']);
 
 app.run(function($rootScope){
 	$rootScope
@@ -23,7 +23,7 @@ app.config([
 				controller: 'HomeCtrl',
 				templateUrl: 'partials/homeView.html',
 				resolve: {
-					postPromise: ['records', function(records){
+					getRecords: ['records', function(records){
 						return records.getRecords();
 					}],
 					getAssets:  ['records', function(records){
@@ -50,6 +50,27 @@ app.config([
 			      $state.go('home');
 			    }
 			  }]
+			})
+			.state('admin', {
+				url: '/admin',
+				templateUrl: 'partials/admin.html',
+				controller: 'AdminCtrl',
+				resolve: {
+					roleAuthenticate: ['$state', 'auth', function($state, auth){
+						if(!auth.isLoggedIn()) {
+							$state.go('home');
+						}
+						auth.isAdmin().then(function(result){
+		  					var isAdmin = result.data[0].isAdmin;
+		  					if(!isAdmin) {
+		  						$state.go('home');
+		  					}
+		  				})
+					}],
+					getUsers: ['records', function(records){
+						return records.getUsers();
+					}]
+				}
 			})
 		$urlRouterProvider.otherwise('home');
 	}

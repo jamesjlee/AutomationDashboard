@@ -15,6 +15,19 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.param('record', function(req, res, next, id) {
+	console.log(id);
+  var query = Metrics.findById(id);
+
+  query.exec(function (err, record){
+    if (err) { return next(err); }
+    if (!record) { return next(new Error('can\'t find record')); }
+
+    req.record = record;
+    return next();
+  });
+});
+
 router.get('/records', function(req, res) {
 	Metrics.find({}).exec(function(err, metrics){
 		if(err) {console.log(err);}
@@ -22,32 +35,7 @@ router.get('/records', function(req, res) {
 	});
 });
 
-router.get('/userHasPermission', function(req, res) {
-	var user = req.query.user;
-	var rowId = req.query.rowId;
-	console.log(rowId);
-	var query = Metrics.find({_id: rowId});
-	query.exec(function(err, metrics) {
-		if(err) {console.log(err);}
-		console.log(metrics);
-		if(metrics.length > 0) {
-			if(metrics[0].users.length > 0) {
-				if(metrics[0].users.indexOf(user) > -1) {
-					res.send(true);
-				} else {
-					res.send(false);
-				}	
-			} else {
-				res.send(false);				
-			}
-		} else {
-			res.send(false);
-		}
-	});
-});
-
-router.post('/addRecord', auth, function(req, res) {
-	console.log(req.body.users);
+router.post('/records', auth, function(req, res) {
 	var metricsJSON = {
 		project: req.body.project,
 		releaseName: req.body.releaseName,
@@ -72,14 +60,17 @@ router.post('/addRecord', auth, function(req, res) {
 
 	var metrics = new Metrics(metricsJSON);
 	metrics.save(function(err, metrics){
-		// console.log(metrics);
+		// res.json({message: 'Record saved'});
 		res.json(metrics);
-		console.log('Metrics saved!');
 	});
 });
 
-router.post('/updateRecord', auth, function(req, res) {
-	Metrics.update({'_id': req.body._id}, {$set: {
+router.get('/records/:record', function(req, res){
+	res.json(req.record);
+});
+
+router.put('/records/:record', auth, function(req, res){
+	Metrics.update({'_id': req.record._id}, {$set: {
 		'project': req.body.project, 
 		'releaseName': req.body.releaseName,
 		'type': req.body.type,
@@ -98,23 +89,32 @@ router.post('/updateRecord', auth, function(req, res) {
 		'automatedExecutionTimeExecutedTests': req.body.automatedExecutionTimeExecutedTests,
 		'cycleTimeSavingsExecutedTests': req.body.cycleTimeSavingsExecutedTests,
 		'comment': req.body.comment,
+		'users': req.body.users,
 	}}, function(err, metrics){
 		if(err){console.log(err);}
 		console.log(metrics);
-		res.json(metrics);
+		res.json({message: 'Successfully updated record'});
 	});
 });
 
-router.post('/deleteRecord', auth, function(req, res) {
-	// console.log(req.body);
-	Metrics.find({'_id': req.body._id}).remove().exec(function(err, data){
+router.delete('/records/:record', auth, function(req, res){
+	Metrics.remove({'_id': req.record._id}, function(err, metric){
 		if(err){console.log(err);}
-		// res.json(data);
-		console.log('Metrics deleted!');
+		res.json({message: 'Successfully deleted record'})
 	});
-	res.json(req.body);
 });
 
+router.param('asset', function(req, res, next, id) {
+  var query = Asset.findById(id);
+
+  query.exec(function (err, asset){
+  	console.log(asset);
+    if (err) { return next(err); }
+    if (!asset) { return next(new Error('can\'t find asset')); }
+    req.asset = asset;
+    return next();
+  });
+});
 
 router.get('/assets', function(req, res) {
 	Asset.find({}).exec(function(err, assets){
@@ -123,7 +123,7 @@ router.get('/assets', function(req, res) {
 	});
 });
 
-router.post('/registerAsset', auth, function(req, res) {
+router.post('/assets', auth, function(req, res) {
 	console.log(req.body);
 	var assetJSON = {
 		assetId: req.body.assetId,
@@ -138,7 +138,7 @@ router.post('/registerAsset', auth, function(req, res) {
 		if(err){console.log(err);}
 		if(returnedAsset.length === 0) {
 			asset.save(function(err, asset){
-				res.send(req.body);
+				res.send(asset);
 				console.log('Asset saved!');
 			});
 		} else {
@@ -147,26 +147,16 @@ router.post('/registerAsset', auth, function(req, res) {
 	});
 });
 
-router.post('/getAssetInfo', function(req, res) {
-	console.log(req.body.project);
-	var query = Asset.find({'assetName': req.body.project});
-	query.exec(function(err, returnedAsset) {
-		if(err){console.log(err);}
-		if(returnedAsset.length === 0) {
-			res.send('Asset not found!');
-
-		} else {
-			res.send(returnedAsset);
-		}
-	});
+router.get('/assets/:asset', function(req, res){
+	res.json(req.asset);
 });
 
-router.post('/updateAsset', auth, function(req, res) {
+router.put('/assets/:asset', auth, function(req, res){
 	var query = Asset.find({'assetName': req.body.assetName.toLowerCase()});
 	query.exec(function(err, returnedAsset) {
-		if(err){console.log(err);}
-		if(returnedAsset.length !== 0) {
-			Asset.update({'_id': req.body._id}, {$set: {
+		if(returnedAsset.length === 0) {
+			Asset.update({'_id': req.asset._id}, {$set: {
+				assetName: req.body.assetName.toLowerCase(),
 				assetId: req.body.assetId,
 				assetPoc: req.body.assetPoc,
 				assetSoc: req.body.assetSoc,
@@ -175,21 +165,22 @@ router.post('/updateAsset', auth, function(req, res) {
 				if(err){console.log(err);}
 				res.json(asset);
 			});
+		} else {
+			res.json({message: 'Asset already exists!'})
 		}
 	});
 });
 
-router.post('/deleteAsset', function(req, res) {
-	Asset.find({'assetName': req.query.assetName}).remove().exec();
-	res.send(req.query.assetName);
+router.delete('/assets/:asset', auth, function(req, res){
+	Asset.remove({'_id': req.asset._id}, function(err, asset){
+		if(err){console.log(err);}
+		res.json({message: 'Successfully deleted asset'})
+	});
 });
 
-router.post('/deleteAssetRecord', function(req, res) {
-	Metrics.find({'_id': req.query.rowId}).remove().exec();
-	res.send(req.query.rowId);
-});
 
-router.post('/updateRecordName', function(req, res) {
+
+router.put('/updateRecordName', auth, function(req, res) {
 	var oldName = req.query.oldName;
 	var newName = req.query.newName;
 	// console.log(req.query.oldName);
@@ -212,6 +203,8 @@ router.post('/register', function(req, res, next){
 	  var user = new User();
 
 	  user.username = req.body.username;
+
+	  user.isAdmin = false;
 
 	  user.setPassword(req.body.password);
 
@@ -244,24 +237,82 @@ router.post('/login', function(req, res, next){
   })(req, res, next);
 });
 
-router.get('/getUserNames', function(req, res){
+router.param('user', function(req, res, next, id) {
+  var query = User.findById(id);
+
+  query.exec(function (err, user){
+  	console.log(user);
+    if (err) { return next(err); }
+    if (!user) { return next(new Error('can\'t find user')); }
+    req.user = user;
+    return next();
+  });
+});
+
+router.get('/users', function(req, res){
 	User.find({}).exec(function(err, users){
 		if(err) {console.log(err);}
 		res.json(users);
 	});
 });
 
-router.post('/updateUsers', function(req, res){
+router.get('/users/:user', function(req, res){
+	res.json(req.user);
+});
+
+router.put('/users/:user', auth, function(req, res){
+	if(req.body.password) {
+		var user = new User();
+		user.setPassword(req.body.password);
+		User.update({'_id': req.user._id}, {$set: {
+			username: req.body.username,
+			salt: user.salt,
+			hash: user.hash,
+			isAdmin: req.body.isAdmin,
+		}}, function(err, user){
+			if(err){console.log(err);}
+			res.json(user);
+		});
+	} else {
+		User.update({'_id': req.user._id}, {$set: {
+			username: req.body.username,
+			salt: req.body.salt,
+			hash: req.body.hash,
+			isAdmin: req.body.isAdmin,
+		}}, function(err, user){
+			if(err){console.log(err);}
+			res.json(user);
+		});
+	}
+});
+
+router.delete('/users/:user', auth, function(req, res){
+	User.remove({'_id': req.user._id}, function(err, user){
+		if(err){console.log(err);}
+		res.json({message: 'Successfully deleted user'})
+	});
+});
+
+router.get('/users-findByUsername', function(req, res){
+	var user = req.query.username;
+	var query = User.find({username: user});
+	query.exec(function(err, returnedUser){
+		if(returnedUser.length !== 0) {
+			res.send(returnedUser);
+		}
+	});
+});
+
+
+router.put('/updateUsers', function(req, res){
 	console.log(req.query.userNameToAdd);
 
 	var query = Metrics.find({'users': req.query.userNameToAdd});
 	query.exec(function(err, returnedUser) {
 		if(returnedUser.length > 0) {
 			// do nothing
-			console.log('here');
 		} else {
 			console.log(req.query.userNameToAdd);
-			console.log('in here');
 			Metrics.update({_id: req.query.rowId },
 	         {$push: { 'users' : req.query.userNameToAdd }},{upsert:true}, function(err, data) { 
 		    	if(err){console.log(err);}
@@ -269,15 +320,29 @@ router.post('/updateUsers', function(req, res){
 			});
 		}
 	});
+});
 
-
-	// var query = Metrics.find({'_id': rowId});
-	// query.exec(function(err, returnedRecord){
-	// 	if(err) {console.log(err);}
-	// 	if(returnedRecord.length > 0) {
-	// 		Metrics.update({'_id'})
-	// 	}
-	// });
+router.get('/userHasPermission', function(req, res) {
+	var user = req.query.user;
+	var rowId = req.query.rowId;
+	var query = Metrics.find({_id: rowId});
+	query.exec(function(err, metrics) {
+		if(err) {console.log(err);}
+		console.log(metrics);
+		if(metrics.length > 0) {
+			if(metrics[0].users.length > 0) {
+				if(metrics[0].users.indexOf(user) > -1) {
+					res.send(true);
+				} else {
+					res.send(false);
+				}	
+			} else {
+				res.send(false);				
+			}
+		} else {
+			res.send(false);
+		}
+	});
 });
 
 module.exports = router;

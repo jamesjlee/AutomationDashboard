@@ -1,0 +1,13 @@
+<div>
+  <div class="modal-header">
+      <h3 class="modal-title">Duplicate Record</h3>
+  </div>
+  <div class="modal-body">
+    <input type="submit" id="submit-form" class="hidden">
+    <p>Are you sure you want to duplicate this record?</p>
+  </div>
+  <div class="modal-footer">
+      <label for="submit-form" ng-click="duplicateRow()" class="btn btn-danger">Yes, I want to duplicate this record</label>
+      <button class="btn btn-primary" ng-click="$close()">No, I do not want to duplicate this record</button>
+  </div>
+</div>
