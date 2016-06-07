@@ -152,23 +152,36 @@ router.get('/assets/:asset', function(req, res){
 });
 
 router.put('/assets/:asset', auth, function(req, res){
-	var query = Asset.find({'assetName': req.body.assetName.toLowerCase()});
-	query.exec(function(err, returnedAsset) {
-		if(returnedAsset.length === 0) {
-			Asset.update({'_id': req.asset._id}, {$set: {
-				assetName: req.body.assetName.toLowerCase(),
-				assetId: req.body.assetId,
-				assetPoc: req.body.assetPoc,
-				assetSoc: req.body.assetSoc,
-				assetStatus: req.body.assetStatus,
-			}}, function(err, asset){
-				if(err){console.log(err);}
-				res.json(asset);
-			});
-		} else {
-			res.json({message: 'Asset already exists!'})
-		}
-	});
+	if(req.asset.assetName === req.body.assetName) {
+		Asset.update({'_id': req.asset._id}, {$set: {
+			assetName: req.body.assetName.toLowerCase(),
+			assetId: req.body.assetId,
+			assetPoc: req.body.assetPoc,
+			assetSoc: req.body.assetSoc,
+			assetStatus: req.body.assetStatus,
+		}}, function(err, asset){
+			if(err){console.log(err);}
+			res.json(asset);
+		});
+	} else {
+		var query = Asset.find({'assetName': req.body.assetName.toLowerCase()});
+		query.exec(function(err, returnedAsset) {
+			if(returnedAsset.length === 0) {
+				Asset.update({'_id': req.asset._id}, {$set: {
+					assetName: req.body.assetName.toLowerCase(),
+					assetId: req.body.assetId,
+					assetPoc: req.body.assetPoc,
+					assetSoc: req.body.assetSoc,
+					assetStatus: req.body.assetStatus,
+				}}, function(err, asset){
+					if(err){console.log(err);}
+					res.json(asset);
+				});
+			} else {
+				res.json({message: 'Asset already exists!'})
+			}
+		});
+	}
 });
 
 router.delete('/assets/:asset', auth, function(req, res){
