@@ -103,7 +103,7 @@ function EditAssetCtrl($scope, AssetSchema, records, $uibModal, $uibModalInstanc
   		
 	}
 
-	function DeleteAssetCtrl($scope, $rootScope, AssetSchema, records, $uibModalInstance, editAssetGrid, editAssetRow, auth) {
+	function DeleteAssetCtrl($scope, $rootScope, records, $uibModalInstance, editAssetGrid, editAssetRow, auth) {
 
 		$scope.deleteAllAssetRecords = function() {
 			var rows = editAssetGrid.rows;

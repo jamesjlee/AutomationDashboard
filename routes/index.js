@@ -8,7 +8,8 @@ var User = mongoose.model('User');
 var passport = require('passport');
 var config = require('./../bin/config');
 var auth = jwt({secret: config.secret, userProperty: 'payload'});
-
+var sendmail = require('sendmail')();
+var CronJob = require('cron').CronJob;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -357,5 +358,36 @@ router.get('/userHasPermission', function(req, res) {
 		}
 	});
 });
+
+function mailsend(sendToEmail) {
+	sendmail({
+	    from: 'no-reply-automation-dashboard@automationdashboard.com',
+	    to: sendToEmail,
+	    subject: 'Automation Dashboard Reporting Reminder',
+	    content: 'Please report metrics on the automation dashboard. If you have already reported your metrics for the month, please disregard this message.',
+	  }, function(err, reply) {
+	    var errNo = err;
+	    if(errNo !== null) {
+	    	mailsend(sendToEmail);
+	    }
+	});
+}
+
+// mailsend();
+var job = new CronJob({
+  cronTime: '0 30 9 15 * *',
+  onTick: function() {
+  	Asset.find({}).exec(function(err, assets){
+		if(err) {console.log(err);}
+		for(var i=0; i<assets.length; i++) {
+			console.log('Sending email to: ' + assets[i].assetPoc);
+			mailsend(assets[i].assetPoc);
+		}
+	});
+  },
+  start: true,
+  timeZone: 'America/New_York'
+});
+
 
 module.exports = router;
